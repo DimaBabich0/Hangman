@@ -25,7 +25,6 @@ int main()
 		PrintMenu();
 		cout << "\nChoose option: ";
 		cin >> userChoice;
-		cin.ignore(255, '\n');
 		system("cls");
 
 		switch (userChoice)
@@ -38,12 +37,21 @@ int main()
 			break;
 		case codeExitProgram:
 			cout << "Thanks for using our program!" << endl;
-			return 0;
+			isExit = true;
+			break;
 		default:
-			cout << "\nYou entered the wrong action code. Try again";
+			if (cin.fail())
+			{
+				cin.clear();
+				cin.ignore(32767, '\n');
+			}
+			cout << "You entered the wrong action code. Try again" << endl;
 		}
-		cout << endl;
-		system("pause");
-		system("cls");
+
+		if (!isExit)
+		{
+			system("pause");
+			system("cls");
+		}
 	}
 }

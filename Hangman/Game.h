@@ -13,7 +13,6 @@ private:
 	Statictics statictics;
 	Time time;
 
-
 	void RoundGame();
 	void PrintHangman();
 	void EnterChar();
