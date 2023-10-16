@@ -8,14 +8,16 @@ private:
 	int minutes;
 	int seconds;
 public:
-	Time()
-	{
-		Record();
-	}
+	Time();
 	void Record();
-	void Print() const;
 	void CountTime() const;
+	void Print() const;
 };
+
+Time::Time()
+{
+	Record();
+}
 
 void Time::Record()
 {
@@ -27,10 +29,6 @@ void Time::Record()
 	minutes = newtime.tm_min;
 	seconds = newtime.tm_sec;
 }
-void Time::Print() const
-{
-	cout << hours << ":" << minutes << ":" << seconds;
-}
 void Time::CountTime() const
 {
 	Time temp;
@@ -39,5 +37,20 @@ void Time::CountTime() const
 	temp.minutes -= minutes;
 	temp.seconds -= seconds;
 
+	if (temp.minutes < 0)
+	{
+		temp.hours--;
+		temp.minutes += 60;
+	}
+	if (temp.seconds < 0)
+	{
+		temp.minutes--;
+		temp.seconds += 60;
+	}
+
 	temp.Print();
+}
+void Time::Print() const
+{
+	cout << hours << ":" << minutes << ":" << seconds;
 }

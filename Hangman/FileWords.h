@@ -42,6 +42,5 @@ string FileWords::FindWord()
         return string(buffer);
     }
     else
-        cout << "Could not open the file" << endl;
-    return "empty";
+        throw string("Could not open the file");
 }

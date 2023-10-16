@@ -10,40 +10,105 @@ private:
 	string guessWord;
 	string guessedLetters;
 	char playerLetter;
-	Statictics stats;
-	Time startGame;
-public:
-	Game() : file("sorted_words.txt"), stats(), startGame() {}
+	Statictics statictics;
+	Time time;
 
-	void PrintRules();
-	void StartGame();
+
 	void RoundGame();
-
-	void PrintStatus();
+	void PrintHangman();
 	void EnterChar();
 	void CheckChar();
-	void uppercase(string& str);
-	void uppercase(char& str);
-
-	void Loss();
-	void Win();
 
 	bool CheckWin();
 	bool CheckLoss();
+
+	void Win();
+	void Loss();
+
+	void Uppercase(string& str);
+	void Uppercase(char& str);
+public:
+	Game() : file("sorted_words.txt"), statictics(), time() {}
+
+	void PrintRules();
+	void StartGame();
 };
 
-void Game::PrintStatus()
+void Game::PrintRules()
 {
-	int temp = stats.GetAttempts();
-	cout << "|     |     |" << endl;
+	cout << "\t\t\tRules:" << endl;
+	cout << "In this game you need to guess the word entering letters." << endl;
+	cout << "If the letter is present in the word, its location is revealed." << endl;
+	cout << "If the letter is missing, a piece of the human body appears on the hangman." << endl;
+	cout << "If you enter a letter you entered earlier or another symbol, you will not lose your attempt." << endl;
+	cout << "You have " << LIFES << " tries before a man forms on the gallows and you lose." << endl;
+	cout << "\t\tGood luck and have fun : )" << endl;
+}
+void Game::StartGame()
+{
+	try
+	{
+		guessWord = file.FindWord();
+	}
+	catch (string message)
+	{
+		cout << message << endl;
+		return;
+	}
+	
+	for (int i = 0; i < guessWord.size() + 1; i++)
+	{
+		guessedLetters.assign(i, '_');
+	}
+
+	time.Record();
+	statictics.Reset();
+
+	Uppercase(guessWord);
+
+	RoundGame();
+}
+
+void Game::RoundGame()
+{
+	while (true)
+	{
+		PrintHangman();
+		cout << endl;
+
+		if (CheckLoss() == true)
+		{
+			Loss();
+			break;
+		}
+		else if (CheckWin() == true)
+		{
+			Win();
+			break;
+		}
+		cout << "Guessed letters: " << guessedLetters << endl;
+		statictics.PrintAlphabet();
+		cout << endl;
+
+		EnterChar();
+		CheckChar();
+
+		system("cls");
+	}
+}
+void Game::PrintHangman()
+{
+	int temp = statictics.GetAttempts();
 	cout << "|     |     |" << endl;
 
-	if (temp <= 5)
+	if (temp <= 6)
 		cout << "|     0     |" << endl;
 	else
 		cout << "|           |" << endl;
 
-	if (temp == 4)
+	if (temp == 5)
+		cout << "|     |     |" << endl;
+	else if (temp == 4)
 		cout << "|    /|     |" << endl;
 	else if (temp <= 3)
 		cout << "|    /|\\    |" << endl;
@@ -61,54 +126,8 @@ void Game::PrintStatus()
 		cout << "|    / \\    |" << endl;
 	else
 		cout << "|           |" << endl;
-}
-
-void Game::PrintRules()
-{
-	cout << "\tRules:" << endl;
-
-}
-
-void Game::StartGame()
-{
-	guessWord = file.FindWord();
-	for (int i = 0; i < guessWord.size() + 1; i++)
-	{
-		guessedLetters.assign(i, '_');
-	}
-	startGame.Record();
-	stats.Reset();
-
-	uppercase(guessWord);
-
-	RoundGame();
-}
-void Game::RoundGame()
-{
-	while (true)
-	{
-		PrintStatus();
-		cout << endl;
-
-		if (CheckLoss() == true)
-		{
-			Loss();
-			break;
-		}
-		else if (CheckWin() == true)
-		{
-			Win();
-			break;
-		}
-		cout << "Guessed letters: " << guessedLetters << endl;
-		stats.PrintAlphabet();
-		cout << endl;
-
-		EnterChar();
-		CheckChar();
-
-		system("cls");
-	}
+	cout << "|           |" << endl;
+	cout << "|           |" << endl;
 }
 void Game::EnterChar()
 {
@@ -119,15 +138,15 @@ void Game::EnterChar()
 void Game::CheckChar()
 {
 	bool isMatch = false;
-	uppercase(playerLetter);
-	
-	if (stats.CheckUsedLetter(playerLetter) == false)
-		stats.AddUsedLetter(playerLetter);
-	else
-	{
-		cout << "You used that letter";
+	Uppercase(playerLetter);
+
+	if (playerLetter < 'A' || playerLetter > 'Z')
 		return;
-	}
+
+	if (statictics.CheckUsedLetter(playerLetter) == false)
+		statictics.AddUsedLetter(playerLetter);
+	else
+		return;
 
 	for (int i = 0; i < guessWord.length(); i++)
 	{
@@ -138,32 +157,7 @@ void Game::CheckChar()
 		}
 	}
 	if (!isMatch)
-		stats.MinusAttempts();
-}
-
-void Game::uppercase(string& str)
-{
-	for (int i = 0; i < str.length(); i++)
-		str[i] = toupper(str[i]);
-}
-void Game::uppercase(char& ch)
-{
-	ch = toupper(ch);
-}
-
-void Game::Loss()
-{
-	cout << "\tYou loss" << endl;
-	cout << "The word is " << guessWord << endl;
-}
-
-void Game::Win()
-{
-	cout << "\tYou win" << endl;
-	cout << "The word is " << guessWord << endl;
-	cout << "You got the word in ";
-	startGame.CountTime();
-	cout << " and " << LIFES - stats.GetAttempts() << " tries";
+		statictics.MinusAttempts();
 }
 
 bool Game::CheckWin()
@@ -174,7 +168,32 @@ bool Game::CheckWin()
 }
 bool Game::CheckLoss()
 {
-	if (stats.GetAttempts() == 0)
+	if (statictics.GetAttempts() == 0)
 		return true;
 	return false;
+}
+
+void Game::Win()
+{
+	cout << "\tYou win : )" << endl;
+	cout << "The word is " << guessWord << endl;
+	cout << "You got the word in ";
+	time.CountTime();
+	cout << " and " << LIFES - statictics.GetAttempts() << " tries";
+}
+void Game::Loss()
+{
+	cout << "\tYou loss : (" << endl;
+	cout << "The word is " << guessWord << endl;
+}
+
+void Game::Uppercase(string& str)
+{
+	for (int i = 0; i < str.length(); i++)
+		str[i] = str[i] - 'a' + 'A';
+}
+void Game::Uppercase(char& ch)
+{
+	if ((ch >= 'a') && (ch <= 'z'))
+		ch = ch - 'a' + 'A';
 }
